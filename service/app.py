@@ -4,6 +4,8 @@ import json
 import logging
 from flask import Flask, request, jsonify, g
 
+START_TIME = time.time()
+
 logging.getLogger("werkzeug").setLevel(logging.ERROR)
 app = Flask(__name__)
 
@@ -52,17 +54,42 @@ def end_request(response):
 @app.route("/")
 def index():
     delay = float(request.args.get("delay", 0))
+    fail = request.args.get("fail", "false").lower() == "true"
+    stress = request.args.get("stress", None)
+
     if delay > 0:
         time.sleep(delay)
 
+    if stress == "cpu":
+        for _ in range(10**7):
+            pass
+
+    if fail:
+        log("simulated failure triggered", request_id=g.request_id)
+        return jsonify({"error": "simulated failure"}), 500
+
     return jsonify({"status": "ok"}), 200
+
 
 
 @app.route("/health")
 def health():
     return "OK", 200
 
+@app.route("/metrics")  
+def metrics():
+    uptime = round(time.time() - START_TIME, 2)
+    return jsonify({
+        "uptime_seconds": uptime
+    }), 200
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
 
+
+
+# Test #1 – Instance termination
+# Test #2 – 500 error spike
+# Test #3 – CPU saturation
+# Test #4 – Latency increase
