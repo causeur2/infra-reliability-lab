@@ -1,44 +1,56 @@
+
+
 # infra-reliability-lab
 
-
-
 ## Overview
-This project explores how a **simple cloud system behaves in production-like conditions**, with a focus on **reliability, observability and controlled failure**.
 
-The goal is not application complexity, but understanding how to **design, operate and improve infrastructure** based on real signals.
+This project simulates a **production-like AWS environment** to explore infrastructure reliability, observability, and controlled failure scenarios.
 
----
-
-## What this lab covers
-- Infrastructure deployed entirely as code
-- A simple HTTP service behind a load balancer
-- Monitoring, logging and alerting fundamentals
-- Intentional failure injection and analysis
-- Incident postmortems and continuous improvement
+Rather than focusing on application complexity, the objective is to design, operate, and improve cloud infrastructure based on real operational signals and measurable system behavior.
 
 ---
 
-## Architecture (high level)
-- AWS VPC
-- Application Load Balancer
-- Auto Scaling Group (EC2)
-- Simple HTTP service with `/health`
-- Cloud-native metrics and logs
+## Reliability Objectives
 
-Infrastructure is provisioned using **Terraform**.
-
----
-
-## Scope
-This project intentionally keeps the scope small:
-- No complex application logic
-- No Kubernetes or advanced orchestration
-- No external databases
-
-The focus is on **fundamentals and operational thinking**.
+* Infrastructure fully provisioned as code using **Terraform**
+* Load-balanced HTTP service with health checks
+* Auto Scaling behavior validation under failure
+* Monitoring, logging, and alert analysis
+* Controlled failure injection and incident documentation
+* Postmortem analysis and continuous improvement practices
 
 ---
 
-🚧 Work in progress
+## Architecture
+
+* AWS VPC
+* Application Load Balancer (ALB)
+* Auto Scaling Group (EC2)
+* Lightweight HTTP service with `/health` endpoint
+* Cloud-native metrics and centralized logging
+
+All infrastructure components are provisioned and managed via Terraform.
+
+---
+
+## Operational Focus
+
+This project intentionally keeps the system simple in order to concentrate on:
+
+* Observability-driven decision making
+* Resource saturation detection
+* Failure recovery validation
+* Resilience over feature complexity
+
+No Kubernetes, complex orchestration, or external databases are included by design.
+
+---
+
+## Status
+
+🚧 Work in progress — actively evolving with new reliability experiments and failure scenarios.
+
+
+
 
 
