@@ -1,11 +1,5 @@
 
 
-# infra-reliability-lab
-
-Voici un README propre, professionnel, orienté SRE / production mindset.
-
-Tu peux l’utiliser tel quel (en adaptant si besoin les détails).
-
 
 # Infra Reliability Lab
 
