@@ -1,10 +1,16 @@
 import time
+import threading
 import uuid
 import json
 import logging
 from flask import Flask, request, jsonify, g
 
 START_TIME = time.time()
+
+def cpu_stress(duration=5):
+    start = time.time()
+    while time.time() - start < duration:
+        pass
 
 logging.getLogger("werkzeug").setLevel(logging.ERROR)
 app = Flask(__name__)
@@ -51,24 +57,20 @@ def end_request(response):
     return response
 
 
+
 @app.route("/")
 def index():
     delay = float(request.args.get("delay", 0))
-    fail = request.args.get("fail", "false").lower() == "true"
-    stress = request.args.get("stress", None)
+    stress = request.args.get("stress")
 
     if delay > 0:
         time.sleep(delay)
 
     if stress == "cpu":
-        for _ in range(10**7):
-            pass
-
-    if fail:
-        log("simulated failure triggered", request_id=g.request_id)
-        return jsonify({"error": "simulated failure"}), 500
+        threading.Thread(target=cpu_stress).start()
 
     return jsonify({"status": "ok"}), 200
+
 
 
 
