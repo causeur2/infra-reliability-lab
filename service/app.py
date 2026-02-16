@@ -24,10 +24,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def log(message: str, **kwargs):
+def log(message: str, level="INFO", **kwargs):
     log_entry = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
-        "level": "INFO",
+        "level": level,
         "message": message,
         **kwargs
     }
@@ -84,6 +84,19 @@ def metrics():
     return jsonify({
         "uptime_seconds": uptime
     }), 200
+
+@app.route("/error")
+def trigger_error():
+    try:
+        raise Exception("Simulated application failure")
+    except Exception as e:
+        log(
+            message="application error occurred",
+            level="ERROR",
+            error=str(e)
+        )
+        return jsonify({"error": "internal failure"}), 500
+
 
 
 if __name__ == "__main__":

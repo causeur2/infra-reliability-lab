@@ -88,7 +88,11 @@ aws ecr get-login-password --region eu-west-3 | \
 docker login --username AWS --password-stdin 413267728348.dkr.ecr.eu-west-3.amazonaws.com
 
 docker run -d -p 8080:8080 \
-413267728348.dkr.ecr.eu-west-3.amazonaws.com/infra-reliability-lab:latest
+  --log-driver=awslogs \
+  --log-opt awslogs-region=eu-west-3 \
+  --log-opt awslogs-group=/infra-reliability-lab/app \
+  --log-opt awslogs-stream=$(hostname) \
+  413267728348.dkr.ecr.eu-west-3.amazonaws.com/infra-reliability-lab:latest
 EOF
   )
 }
