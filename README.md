@@ -1,205 +1,114 @@
-
-
-
 # Infra Reliability Lab
 
-Production-oriented infrastructure lab focused on reliability, observability and controlled scaling.
-
-This project simulates a small but realistic cloud architecture designed and operated with SRE principles in mind. The goal is not application complexity, but infrastructure behavior under load, failure scenarios and operational constraints.
+Production-like AWS infrastructure designed to explore reliability engineering principles: observability, failure injection, autoscaling, and SLO validation.
 
 
-## Architecture Overview
+## Overview
 
-The infrastructure is deployed entirely using Terraform and runs on AWS (eu-west-3).
+This project simulates a minimal cloud service running behind an Application Load Balancer with Auto Scaling.
 
-### Core components
+The focus is not application complexity, but operational excellence:
 
-* Custom VPC with public subnets (multi-AZ)
-* Application Load Balancer (ALB)
-* Target Group with health checks
+* Structured logging
+* Failure simulation
+* Error detection from logs
+* SLI/SLO monitoring
+* Target tracking autoscaling
+* Infrastructure as Code
+
+All infrastructure is provisioned using Terraform.
+
+
+## Architecture
+
+* AWS VPC (multi-AZ)
+* Application Load Balancer
 * Auto Scaling Group (EC2)
 * Dockerized Python service
-* Amazon ECR (container registry)
-* CloudWatch dashboards and alarms
-* Remote Terraform backend (S3 + DynamoDB locking)
-
-The system is designed to be:
-
-* Horizontally scalable
-* Observable
-* Fault-tolerant
-* Infrastructure-as-Code driven
+* Amazon ECR
+* CloudWatch (logs, metrics, alarms, dashboards)
+* S3 + DynamoDB backend for Terraform state
 
 
+## Reliability Features
 
-## Application Layer
+### Failure Injection
 
-The application is a minimal HTTP service built with Flask and containerized with Docker.
+The application exposes a controlled failure endpoint:
 
-### Features
+```
+/error
+```
 
-* Structured JSON logging
-* Request ID propagation
-* Latency measurement per request
-* `/health` endpoint for load balancer health checks
-* `/metrics` endpoint for uptime tracking
-* Failure injection:
-
-  * Artificial delay
-  * CPU stress simulation
-
-The application is intentionally simple. The focus is on infrastructure behavior, not business logic.
+Used to simulate production incidents and validate detection mechanisms.
 
 
-## Container & Deployment
+### Structured Logging
 
-* Docker image built locally (ARM64 build adjusted for AMD64 EC2 runtime)
-* Image pushed to Amazon ECR
-* EC2 instances pull image at boot via user data script
-* Service exposed on port 8080
-* Traffic routed through ALB
-
-
-## Auto Scaling Strategy
-
-The Auto Scaling Group is configured with:
-
-* Min capacity: 1
-* Max capacity: 2
-* Target Tracking Scaling policy
-* CPU target: 55%
-* Estimated instance warmup: 120 seconds
-
-Scaling decisions are based on:
-
-ASGAverageCPUUtilization
-
-This ensures:
-
-* Controlled horizontal scaling
-* Avoidance of aggressive scale-out
-* Stability during instance warmup
-* Reduced scaling “yo-yo” effects
+* JSON logs
+* Request ID tracking
+* Latency measurement
+* Centralized in CloudWatch Logs
 
 
-## Observability & Monitoring
+### Log-Based Error Detection
 
-A CloudWatch dashboard provides visibility into:
+A CloudWatch Metric Filter converts application `"ERROR"` logs into a custom metric:
 
-* ASG average CPU utilization
-* In-service instance count
-* ALB target response time
-* ALB request count
-* HTTP 5XX errors (ELB + Target)
+```
+InfraReliabilityLab / AppErrorCount
+```
 
-Alarms are configured for:
-
-* High ASG CPU
-* Target 5XX errors
-* SLO violation (error threshold breach)
-
-This allows:
-
-* Early detection of saturation
-* Visibility into user-facing latency
-* Error tracking at the load balancer layer
-* Service reliability monitoring
+An alarm triggers automatically on error spikes.
 
 
-## Service Level Objective (SLO)
+### Service Level Indicator (SLI)
 
-This lab defines a reliability objective to simulate production standards.
+Availability SLI is calculated from ALB metrics:
 
-### SLO
+```
+Availability = 100 - (5XX / Requests * 100)
+```
 
-99% availability over a rolling window.
+Target SLO: **99.9% availability**
 
-### Error Budget
-
-1% allowable failure rate.
-
-If the error budget is exceeded:
-
-* Deployments should be paused
-* Root cause analysis is required
-* Reliability improvements take priority
-
-This introduces production-grade reliability thinking beyond simple uptime monitoring.
+Custom CloudWatch alarms validate SLO compliance.
 
 
-## Terraform Backend (Production Practice)
+### Autoscaling Strategy
 
-Terraform state is stored remotely:
+Target Tracking Policy:
 
-* S3 bucket (versioned and encrypted)
-* DynamoDB table for state locking
-
-This ensures:
-
-* Safe collaboration
-* Protection against state corruption
-* Controlled concurrent operations
-* Production-aligned infrastructure management
+* Metric: ASGAverageCPUUtilization
+* Target: ~55%
+* Automatic scale-out under load
+* Rolling replacement of unhealthy instances
 
 
-## Load Testing & Failure Simulation
+## CI/CD
 
-A custom load script simulates traffic and CPU stress:
+GitHub Actions pipeline:
 
-* Generates concurrent requests via ALB
-* Triggers scaling events
-* Validates ASG behavior
-* Tests health checks and instance replacement
-
-This allows controlled experimentation of:
-
-* Scale-out under CPU pressure
-* ALB health check failures
-* Instance termination and replacement
-* Response time degradation
-
-
-## Reliability Experiments Conducted
-
-* CPU stress causing ASG scale-out
-* Health check failures triggering instance replacement
-* Target draining validation
-* Warmup behavior observation
-* 5XX monitoring under stress
-* Dashboard validation during scaling events
+* Builds Docker image (linux/amd64)
+* Pushes to Amazon ECR
+* Infrastructure deployed via Terraform
 
 
 ## What This Project Demonstrates
 
-* Infrastructure as Code (Terraform)
-* Containerized workloads on EC2
-* Horizontal scaling strategies
-* Load balancer health modeling
+* Infrastructure as Code discipline
 * Observability-first design
-* SLO-driven reliability thinking
-* Remote state best practices
-* Failure injection for validation
-
-This project focuses on operational maturity rather than application complexity.
-
-
-## Future Improvements
-
-* Rolling updates / zero-downtime deployments
-* Blue/Green strategy
-* Advanced SLO metric math (error rate ratio)
-* SNS-based alerting
-* Chaos experiments automation
-* p95 latency objective tracking
-* CI/CD pipeline integration (GitHub Actions)
+* Controlled failure testing
+* Log-to-metric transformation
+* Alert-driven reliability validation
+* Production-style autoscaling
 
 
-## Philosophy
+## Status
 
-The objective is to treat even a small system as if it were production.
+Active project — continuously improving SLO modeling and reliability mechanisms.
 
-Reliability is not assumed.
-It is measured, tested and enforced.
+
 
 
 
